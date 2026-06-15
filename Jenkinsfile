@@ -3,18 +3,37 @@ pipeline {
     
     environment {
         DOCKER_IMAGE = 'flask-calculator:latest'
-        DOCKERHUB_USERNAME = 'vivekreddykompelly'  // Your Docker Hub username
-        DOCKERHUB_ACCESS_TOKEN = 'dckr_pat_YI_2uWMNNl0mnq47KUm28kJMYg'  // Your Docker Hub access token
-        DOCKER_REGISTRY = 'vivekreddykompelly/samplerepo'  // Your Docker repository
+        DOCKERHUB_USERNAME = 'mahendra4774'  // Your Docker Hub username
+        DOCKERHUB_ACCESS_TOKEN = credentials('dockerhub-access-token')  // Your Docker Hub access token
+        DOCKER_REGISTRY = 'mahendra4774/python-app'  // Your Docker repository
     }
 
-    stages {
+    stages { 
         stage('Checkout/source') {
             steps {
                 // Clone the repository containing your Flask calculator application
-                git 'https://github.com/vrk2299/myapp'  // Replace with your repository URL
+                git 'https://github.com/akulamahendra/python-app.git'  // Replace with your repository URL
             }
         }
+         stage('terraform init'){
+            steps{
+                sh 'terraform init'
+            }
+        }
+        stage('terraform plan'){
+            steps{
+                sh 'terraform plan -out=tfplan'
+            }
+        }
+        stage('terraform apply'){
+            steps{
+                sh 'terraform apply -auto-approve'
+            }
+        }
+        stage('sleep 120'){
+            steps{
+                sh 'sleep 120'
+            }
 
         stage('Build Docker Image') {
             steps {

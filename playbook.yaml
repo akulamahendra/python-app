@@ -1,0 +1,21 @@
+- hosts: all
+  remote_user: ec2-user
+  become: yes
+  tasks:
+    - name : "install java"
+      shell:
+        cmd:
+          |
+            yum update && yum upgrade -y;
+            yum install git -y;
+            yum install docker -y;
+
+    - name: "start and enable docker"
+      shell:
+        cmd:
+          |
+            systemctl start docker;
+            systemctl enable docker;
+            systemctl status docker;
+
+
