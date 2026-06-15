@@ -36,13 +36,7 @@ pipeline {
                 sh 'terraform apply -auto-approve'
             }
         }
-
-        stage('Sleep 180') {
-            steps {
-                sh 'sleep 180'
-            }
-        }
-
+        
         stage('Build Docker Image') {
             steps {
                 script {
