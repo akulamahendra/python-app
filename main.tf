@@ -21,7 +21,7 @@ resource "aws_instance" "myserver" {
     vpc_security_group_ids = [ aws_security_group.mysg.id ]
 
     tags = {
-      Name = "java-app"
+      Name = "python-app"
     }
   
 }
@@ -57,7 +57,7 @@ resource "aws_eip" "myelastic-ip" {
     provisioner "local-exec" {
         command = <<EOT
             sleep 120
-            sudo ssh-keygen -R ${self.public_ip} || true
+            ssh-keygen -R ${self.public_ip} || true
             sudo ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -i ${self.public_ip}, playbook.yaml -u ec2-user --private-key /home/ec2-user/docker.pem
         EOT
     }
