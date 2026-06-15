@@ -56,9 +56,9 @@ resource "aws_eip" "myelastic-ip" {
     instance = aws_instance.myserver.id
     provisioner "local-exec" {
         command = <<EOT
-            sleep 120
+            sleep 180
             ssh-keygen -R ${self.public_ip} || true
-            sudo ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -i ${self.public_ip}, playbook.yaml -u ec2-user --private-key /home/ec2-user/docker.pem
+            ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -i ${self.public_ip}, playbook.yaml -u ec2-user --private-key /home/ec2-user/docker.pem
         EOT
     }
 }

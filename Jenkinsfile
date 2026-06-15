@@ -37,9 +37,9 @@ pipeline {
             }
         }
 
-        stage('Sleep 120') {
+        stage('Sleep 180') {
             steps {
-                sh 'sleep 120'
+                sh 'sleep 180'
             }
         }
 
