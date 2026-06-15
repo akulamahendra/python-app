@@ -1,44 +1,48 @@
 pipeline {
     agent any
-    
+
     environment {
         DOCKER_IMAGE = 'flask-calculator:latest'
-        DOCKERHUB_USERNAME = 'mahendra4774'  // Your Docker Hub username
-        DOCKERHUB_ACCESS_TOKEN = credentials('dockerhub-access-token')  // Your Docker Hub access token
-        DOCKER_REGISTRY = 'mahendra4774/python-app'  // Your Docker repository
+        DOCKERHUB_USERNAME = 'mahendra4774'
+        DOCKERHUB_ACCESS_TOKEN = credentials('dockerhub-access-token')
+        DOCKER_REGISTRY = 'mahendra4774/python-app'
     }
 
-    stages { 
+    stages {
+
         stage('Checkout/source') {
             steps {
-                // Clone the repository containing your Flask calculator application
-                git 'https://github.com/akulamahendra/python-app.git'  // Replace with your repository URL
+                git 'https://github.com/akulamahendra/python-app.git'
             }
         }
-         stage('terraform init'){
-            steps{
+
+        stage('Terraform Init') {
+            steps {
                 sh 'terraform init'
             }
         }
-        stage('terraform plan'){
-            steps{
+
+        stage('Terraform Plan') {
+            steps {
                 sh 'terraform plan -out=tfplan'
             }
         }
-        stage('terraform apply'){
-            steps{
+
+        stage('Terraform Apply') {
+            steps {
                 sh 'terraform apply -auto-approve'
             }
         }
-        stage('sleep 120'){
-            steps{
+
+        stage('Sleep 120') {
+            steps {
                 sh 'sleep 120'
             }
+        }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image for the Flask application
                     sh "sudo docker build -t ${DOCKER_IMAGE} ."
                 }
             }
@@ -47,7 +51,6 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    // Run unit tests inside the Docker container
                     sh """
                     sudo docker run --name test-container ${DOCKER_IMAGE} /bin/sh -c 'python -m unittest discover -s /app/tests'
                     sudo docker rm test-container
@@ -59,11 +62,11 @@ pipeline {
         stage('Push to Docker Registry') {
             steps {
                 script {
-                    // Login to Docker Hub
                     sh """
                     echo ${DOCKERHUB_ACCESS_TOKEN} | sudo docker login -u ${DOCKERHUB_USERNAME} --password-stdin
-                    # Tag and push the Docker image
+
                     sudo docker tag ${DOCKER_IMAGE} ${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}
+
                     sudo docker push ${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}
                     """
                 }
@@ -73,7 +76,6 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    // Deploy the application by running the Docker container
                     sh """
                     sudo docker run -d -p 5000:80 ${DOCKER_IMAGE}
                     """
@@ -86,9 +88,9 @@ pipeline {
         success {
             echo 'Pipeline executed successfully!'
         }
+
         failure {
             echo 'Pipeline failed.'
         }
     }
-}
 }
