@@ -1,74 +1,70 @@
 terraform {
   required_providers {
-    aws ={
-        source = "hashicorp/aws"
-        version = "6.45.0"
+    aws = {
+      source = "hashicorp/aws"
+      version = "~>6.0"
     }
+  }
+
+  backend "s3" {
+    bucket = "java-application-tfstate-515347263680-ap-south-1-an"
+    key = "java/terraform.tfstate"
+    region = "ap-south-1"
+    encrypt = true
   }
 }
 
+# Set default region
 provider "aws" {
-
-    region = "ap-south-1"
+  region = "ap-south-1"
 }
 
-resource "aws_instance" "myserver" {
+# Create an instance named slave-server
+resource "aws_instance" "slave-server" {
+  ami = "ami-0685bcc683dadb6b9"
+  instance_type = var.cpu_type
+  key_name = "harsha-server"
+  availability_zone = "ap-south-1a"
+  vpc_security_group_ids = [ aws_security_group.slave-server-sec-grp.id ]
 
-    availability_zone  = "ap-south-1a"
-    ami    = "ami-0685bcc683dadb6b9"
-    instance_type = "c7i-flex.large"
-    key_name = "docker"
-    vpc_security_group_ids = [ aws_security_group.mysg.id ]
+  tags = {
+    Name = "slave-server"
+  }
 
-    tags = {
-      Name = "python-app"
-    }
-  
+provisioner "local-exec" {
+  command = <<EOT
+  sudo sleep 60
+  sudo ssh-keygen -R ${self.public_ip}
+  sudo ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -i ${self.public_ip}, playbook.yaml -u ec2-user --private-key /home/ec2-user/.keys/harsha-server.pem
+  EOT
+  }
 }
 
-resource "aws_security_group" "mysg" {
-
-    vpc_id = 	"vpc-03987eef9d69ca4e8"
-
-    ingress {
-        from_port = 22
-        to_port = 22
-        cidr_blocks = ["0.0.0.0/0"]
-        protocol = "tcp"
-    }
-
-    ingress {
-        from_port = 8080
-        to_port = 8080
-        cidr_blocks = ["0.0.0.0/0"]
-        protocol = "tcp"
-    }
-
-    egress {
-        from_port = 0
-        to_port = 0
-        protocol = "-1"
-        cidr_blocks = ["0.0.0.0/0"]
-    }
+# Attach Elastic IP
+resource "aws_eip" "slave-server-eip" {
+  instance = aws_instance.slave-server.id
 }
 
-resource "aws_eip" "myelastic-ip" {
-    instance = aws_instance.myserver.id
-    provisioner "local-exec" {
-        command = <<EOT
-            sleep 120
-            sudo ssh-keygen -R ${self.public_ip} || true
-            sudo ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -i ${self.public_ip}, playbook.yaml -u ec2-user --private-key /home/ec2-user/docker.pem
-        EOT
-    }
-}
+# Security group for slave-server
+resource "aws_security_group" "slave-server-sec-grp" {
+  ingress {
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    cidr_blocks = [ "0.0.0.0/0" ]
+  }
 
-output "elastic_ip" {
-    description = "Elastic IP address of the EC2 instance"
-    value       = aws_eip.myelastic-ip.public_ip
-}
+  ingress {
+    from_port = 8080
+    to_port = 8080
+    protocol = "tcp"
+    cidr_blocks = [ "0.0.0.0/0" ]
+  }
 
-output "instance_id" {
-    description = "EC2 instance ID"
-    value       = aws_instance.myserver.id
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = -1
+    cidr_blocks = [ "0.0.0.0/0" ]
+  }
 }
