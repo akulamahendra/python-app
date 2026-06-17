@@ -15,7 +15,7 @@ provider "aws" {
 # Create an instance named slave-server
 resource "aws_instance" "slave-server" {
   ami = "ami-0685bcc683dadb6b9"
-  instance_type = var.cpu_type
+  instance_type = "c7i-flex.large"
   key_name = "harsha-server"
   availability_zone = "ap-south-1a"
   vpc_security_group_ids = [ aws_security_group.slave-server-sec-grp.id ]
