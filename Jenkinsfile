@@ -40,6 +40,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
+                    sh "pwd"
                     sh "sudo docker build -t ${DOCKER_IMAGE} ."
                 }
             }
