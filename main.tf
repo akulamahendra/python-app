@@ -12,23 +12,23 @@ provider "aws" {
   region = "ap-south-1"
 }
 
-# Create an instance named slave-server
-resource "aws_instance" "slave-server" {
+# Create an instance named python-app
+resource "aws_instance" "python-app" {
   ami = "ami-0685bcc683dadb6b9"
   instance_type = "c7i-flex.large"
-  key_name = "harsha-server"
+  key_name = "docker"
   availability_zone = "ap-south-1a"
   vpc_security_group_ids = [ aws_security_group.slave-server-sec-grp.id ]
 
   tags = {
-    Name = "slave-server"
+    Name = "python-app"
   }
 
 provisioner "local-exec" {
   command = <<EOT
   sudo sleep 60
   sudo ssh-keygen -R ${self.public_ip}
-  sudo ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -i ${self.public_ip}, playbook.yaml -u ec2-user --private-key /home/ec2-user/.keys/harsha-server.pem
+  sudo ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -i ${self.public_ip}, playbook.yaml -u ec2-user --private-key /home/ec2-user/docker.pem
   EOT
   }
 }
