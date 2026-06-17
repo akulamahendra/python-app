@@ -5,6 +5,12 @@ terraform {
       version = "~> 6.0"
     }
   }
+   backend "s3" {
+    bucket = "terraform-014780801564-ap-south-1-an"
+    key = "python-app/terraform.tfstate"
+    region = "ap-south-1"
+    encrypt = true
+  }
 }
 
 provider "aws" {
